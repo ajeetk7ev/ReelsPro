@@ -13,25 +13,53 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User{
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  clerkId String @unique
-  email String @unique
-  bio String?
-  name String?
-  createAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  shorts Shorts[]
+model User {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  clerkId   String    @unique
+  email     String    @unique
+  bio       String?
+  name      String?
+  imageUrl  String?   @default("")
+  createAt  DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  shorts    Shorts[]
+  Like      Like[]
+  Comments  Comment[]
 }
 
-model Shorts{
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  userId String  @db.ObjectId
-  title String
-  description String?
-  videoUrl String
+model Shorts {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String    @db.ObjectId
+  title        String
+  description  String?
+  videoUrl     String
   thumbnailUrl String?
-  createAt DateTime @default(now())
+  likes        Like[]
+  comment      Comment[]
+  createAt     DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id])
+}
+
+model Like {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  shortsId  String   @db.ObjectId
+  shorts    Shorts   @relation(fields: [shortsId], references: [id])
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, shortsId])
+}
+
+model Comment {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  userId   String @db.ObjectId
+  user     User   @relation(fields: [userId], references: [id])
+  shortsId String @db.ObjectId
+  shorts   Shorts @relation(fields: [shortsId], references: [id])
+  content  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
