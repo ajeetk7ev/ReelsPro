@@ -11,13 +11,14 @@ export const saveUser = async () => {
         const clerkUser = await currentUser();
         //console.log("clerkUser is info ", clerkUser);
         if (!clerkUser) {
-            console.log("No user found");
             return;
         }
         const userId = clerkUser.id;
         const email = clerkUser.emailAddresses[0]?.emailAddress;
         const firstName = clerkUser.firstName ?? "";
         const lastName = clerkUser.lastName ?? "";
+        const imageUrl = clerkUser.imageUrl ?? "";
+        
 
         const user = await prisma.user.findUnique({
              where:{
@@ -30,7 +31,8 @@ export const saveUser = async () => {
                 data: {
                     clerkId: userId,
                     email: email,
-                    name:firstName+lastName
+                    name:firstName+lastName,
+                    imageUrl:imageUrl
                 }
             });
         } else {

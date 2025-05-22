@@ -40,19 +40,21 @@ export const Navbar =  () => {
 
 
                 {/* Create button and User profile */}
-                <div className=" hidden md:flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                  <div className=" hidden md:flex items-center ">
                     <Link href={"/upload"} >
                         <Button className="flex items-center gap-1 bg-blue-600 text-white dark:bg-blue-500 dark:text-white hover:bg-blue-700 dark:hover:bg-blue-600">
                             <Plus className="w-4 h-4" />
                             Create
                         </Button>
                     </Link>
+                </div>
 
                     <ModeToggle />
 
-                    <div>
+                    <div className="hidden md:block">
 
-                        <DropdownMenu>
+                        <DropdownMenu >
                             <DropdownMenuTrigger asChild>
                                 <Avatar>
                                     <AvatarImage
@@ -90,9 +92,9 @@ export const Navbar =  () => {
                     </div>
 
 
-                </div>
 
                 <MobileNavbar />
+              </div>
             </div>
         </header>
 
@@ -112,9 +114,9 @@ export const Navbar =  () => {
                 <SheetContent className="flex flex-col gap-6 bg-slate-50 dark:bg-slate-900">
                     {/* Header with Avatar and Mode Toggle */}
                     <SheetHeader>
-                        <SheetTitle className="text-xl sm:text-2xl font-semibold text-slate-950 dark:text-slate-50 text-center mt-3">Welcome to ReelsPro</SheetTitle>
-                        <div className="flex items-center justify-around ">
-                            <div className="flex items-center gap-3">
+                        <SheetTitle className="text-2xl  font-semibold text-slate-950 dark:text-slate-50 text-center mt-3">Welcome to ReelsPro</SheetTitle>
+                        <div className="flex items-center justify-around mt-4">
+                            <div className="flex flex-col items-center ">
                                 <Avatar>
                                     <AvatarImage
                                         className="w-10 h-10 rounded-full border border-slate-300 dark:border-slate-700"
@@ -123,10 +125,12 @@ export const Navbar =  () => {
                                     <AvatarFallback>U</AvatarFallback>
                                 </Avatar>
 
+                                <p className="text-2xl font-semibold">{user.user?.fullName}</p>
+
 
                             </div>
 
-                            <ModeToggle />
+                            {/* <ModeToggle /> */}
 
                         </div>
                     </SheetHeader>
@@ -134,9 +138,15 @@ export const Navbar =  () => {
 
                     {/* Create Button */}
                     <Link href={"/upload"}>
-                        <Button className="w-[80%] mx-auto bg-blue-600 text-white dark:bg-blue-500 dark:text-white hover:bg-blue-700 dark:hover:bg-blue-600 flex items-center gap-2">
+                        <Button className="w-[80%] mx-auto bg-slate-600 text-white dark:bg-slate-800 dark:text-white   flex items-center gap-2">
                             <Plus className="w-4 h-4" />
                             Create Short
+                        </Button>
+                    </Link>
+
+                    <Link href={"/dashboard"}>
+                       <Button className="w-[80%] mx-auto bg-slate-600 text-white dark:bg-slate-800 dark:text-white  flex items-center gap-2">
+                          Dashboard
                         </Button>
                     </Link>
 
