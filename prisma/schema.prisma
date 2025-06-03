@@ -25,7 +25,23 @@ model User {
   shorts    Shorts[]
   Like      Like[]
   Comments  Comment[]
+
+  followers Follow[] @relation("Following") // people who follow this user
+  following Follow[] @relation("Followers") // people this user follows
 }
+
+model Follow {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  followerId String   @db.ObjectId
+  followingId String  @db.ObjectId
+  createdAt  DateTime @default(now())
+
+  follower   User     @relation("Followers", fields: [followerId], references: [id])
+  following  User     @relation("Following", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId])
+}
+
 
 model Shorts {
   id           String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -54,12 +70,12 @@ model Like {
 }
 
 model Comment {
-  id       String @id @default(auto()) @map("_id") @db.ObjectId
-  userId   String @db.ObjectId
-  user     User   @relation(fields: [userId], references: [id])
-  shortsId String @db.ObjectId
-  shorts   Shorts @relation(fields: [shortsId], references: [id])
-  content  String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  shortsId  String   @db.ObjectId
+  shorts    Shorts   @relation(fields: [shortsId], references: [id])
+  content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

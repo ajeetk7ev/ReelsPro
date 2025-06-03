@@ -50,6 +50,7 @@ const ShortsFeed: React.FC<ShortFeedProps> = ({ short }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const [isLike, setIsLike] = useState(false);
+  const [isFollow, setIsFollow] = useState(true);
   const [comment, setComment] = useState("");
   const [totalComments, setTotalComments] = useState<CommentType[]>([]);
   const [createCommentLoading, setCreateCommentLoading] = useState(false);
@@ -57,39 +58,39 @@ const ShortsFeed: React.FC<ShortFeedProps> = ({ short }) => {
   const { user } = useUser();
 
   // Auto play/pause based on viewport visibility
- useEffect(() => {
-  if (!cardRef.current) return;
+  useEffect(() => {
+    if (!cardRef.current) return;
 
-  const observer = new IntersectionObserver(
-    ([entry]) => {
-      const video = videoRef.current;
-      if (!video) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const video = videoRef.current;
+        if (!video) return;
 
-      if (entry.isIntersecting) {
-        if (video.paused) {
-          video.play().catch((err) => console.error("Play failed:", err));
-          video.muted = false;
+        if (entry.isIntersecting) {
+          if (video.paused) {
+            video.play().catch((err) => console.error("Play failed:", err));
+            video.muted = false;
+          }
+        } else {
+          if (!video.paused) {
+            video.pause();
+            video.muted = true;
+          }
         }
-      } else {
-        if (!video.paused) {
-          video.pause();
-          video.muted = true;
-        }
-      }
-    },
-    { threshold: 0.75 }
-  );
+      },
+      { threshold: 0.75 }
+    );
 
-  observer.observe(cardRef.current);
-  return () => observer.disconnect();
-}, []);
+    observer.observe(cardRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!user) return;
 
     const fetchInitialData = async () => {
       try {
-        const [likeRes, countRes] = await Promise.all([
+        const [likeRes, countRes, followRes] = await Promise.all([
           fetch("/api/shorts/check-like", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -100,13 +101,22 @@ const ShortsFeed: React.FC<ShortFeedProps> = ({ short }) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ shortId: short.id }),
           }),
+          fetch("/api/shorts/check-follow", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ adminUserId: short.userId, userId: user.id }),
+          }),
         ]);
 
         const likeData = await likeRes.json();
         const countData = await countRes.json();
+        const followData = await followRes.json();
+
+        console.log("Follow Data: ", followData);
 
         setIsLike(likeData.isLike);
         setLikeCount(countData.totalLike);
+        setIsFollow(followData.isFollowing);
       } catch (error) {
         console.error("Error loading like data:", error);
       }
@@ -171,12 +181,32 @@ const ShortsFeed: React.FC<ShortFeedProps> = ({ short }) => {
     try {
       const res = await fetch(`/api/shorts/comment?shortsId=${short.id}`);
       const data = await res.json();
-      console.log("COMMENTS DATA",data);
+      console.log("COMMENTS DATA", data);
       setTotalComments(data.comments);
     } catch (error) {
       console.log(error);
     }
   };
+
+  const handleFollow = async () =>{
+      if(!user) return;
+      setIsFollow((prev) => !prev);
+      try {
+        const res = await fetch("/api/shorts/toggle-follow", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ targetUserId: short.userId, userId: user.id }),
+        });
+
+        const data = await res.json();
+        if (!data.success) {
+          setIsFollow((prev) => !prev);
+        }
+      } catch (error) {
+        console.error("Failed to toggle follow:", error);
+        setIsFollow((prev) => !prev);
+      }
+  }
 
   return (
     <Card
@@ -198,11 +228,11 @@ const ShortsFeed: React.FC<ShortFeedProps> = ({ short }) => {
       <div className="absolute right-4 bottom-32 flex flex-col items-center space-y-2 z-10">
         <div className="flex flex-col items-center justify-center">
           <Button
-          variant={"outline"}
+            variant={"outline"}
             onClick={handleLikeClick}
-           
+
           >
-            <HiThumbUp  className={`${isLike ? "text-blue-500" : "text-white"} `} />
+            <HiThumbUp className={`  ${isLike ? "text-blue-500" :  " text-black dark:text-white"} `} />
           </Button>
           <span>{likeCount}</span>
         </div>
@@ -227,22 +257,22 @@ const ShortsFeed: React.FC<ShortFeedProps> = ({ short }) => {
                   <p className="text-sm text-center text-muted-foreground">No comments yet.</p>
                 ) : (
                   totalComments.map((c) => (
-               
+
                     <div key={c.id} className="flex  items-start space-x-2">
-                     <div className="flex  items-center gap-1">  
-                      <Avatar className="w-8 h-8">
-                        <AvatarImage src={c.user.imageUrl} alt={c.user.name} />
-                        <AvatarFallback>{c.user.name[0]}</AvatarFallback>
-                      </Avatar>
-                   
+                      <div className="flex  items-center gap-1">
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src={c.user.imageUrl} alt={c.user.name} />
+                          <AvatarFallback>{c.user.name[0]}</AvatarFallback>
+                        </Avatar>
+
                       </div>
-                   
-                        
+
+
                       <div className="bg-muted p-2 rounded-lg">
                         <p className="text-sm font-medium">{c.user.name}</p>
                         <p className="text-sm text-muted-foreground">{c.content}</p>
                       </div>
-                    
+
                     </div>
                   ))
                 )}
@@ -276,7 +306,7 @@ const ShortsFeed: React.FC<ShortFeedProps> = ({ short }) => {
 
         <div className="flex flex-col items-center justify-center">
           <Button variant={"outline"}>
-            <FaShare  className="text-3xl" />
+            <FaShare className="text-3xl" />
           </Button>
           2k
         </div>
@@ -286,12 +316,14 @@ const ShortsFeed: React.FC<ShortFeedProps> = ({ short }) => {
       <CardFooter className="absolute bottom-20 left-0 text-white p-4">
         <div>
           <div className="flex items-center space-x-2">
-            <Avatar>
+            <Avatar className="w-12 h-12 rounded-full">
               <AvatarImage src={short.user.imageUrl ?? "https://github.com/shadcn.png"} />
               <AvatarFallback>CN</AvatarFallback>
             </Avatar>
-            <div className="flex flex-col justify-center">
+            <div className="flex flex-row items-center justify-center gap-2">
+
               <h3 className="font-semibold text-base">{short.user.name}</h3>
+              <Button variant={"outline"} className="text-black  dark:text-white " onClick={handleFollow} >{isFollow ? "Following" : "Follow"}</Button>
             </div>
           </div>
           <div className="text-sm mt-2">

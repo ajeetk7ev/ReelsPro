@@ -37,7 +37,7 @@ export  function HomePage({ shorts }: { shorts: any[] }) {
         <Navbar />
       </div>
       <div
-        className="flex flex-col items-center pt-[40px]"
+        className="flex flex-col items-center pt-[60px]"
         ref={containerRef}
       >
         {shorts.map((short, index) => (
@@ -46,7 +46,7 @@ export  function HomePage({ shorts }: { shorts: any[] }) {
             className="snap-start flex justify-center items-center h-screen w-full"
             data-index={index}
           >
-            {/* 👇 only render focused short to improve performance */}
+            {/*only render focused short to improve performance */}
             {index === visibleIndex ? (
               <ShortsFeed short={short} />
             ) : (
